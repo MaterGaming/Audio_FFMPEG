@@ -1,645 +1,399 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Editor</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@7"></script>
-    <script src="https://cdn.jsdelivr.net/npm/audiobuffer-to-wav@1.0.0/index.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--tg-theme-bg-color, #f5f5f5);
-            color: var(--tg-theme-text-color, #333);
-            padding: 16px;
-        }
-        
-        .file-select-btn {
-            width: 100%;
-            padding: 20px;
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, white);
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 10px 0;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .file-select-btn input {
-            display: none;
-        }
-        
-        .file-info {
-            background: var(--tg-theme-secondary-bg-color, white);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 10px 0;
-            display: none;
-        }
-        
-        .file-info.active {
-            display: block;
-        }
-        
-        .file-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            word-break: break-all;
-        }
-        
-        .file-size {
-            color: var(--tg-theme-hint-color, #666);
-            font-size: 14px;
-        }
-        
-        #waveform {
-            width: 100%;
-            height: 120px;
-            margin: 20px 0;
-            background: var(--tg-theme-secondary-bg-color, white);
-            border-radius: 8px;
-        }
-        
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0 15px 0;
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #666);
-        }
-        
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, white);
-            font-size: 16px;
-            cursor: pointer;
-            flex: 1;
-            min-width: 100px;
-        }
-        
-        .btn.secondary {
-            background: var(--tg-theme-secondary-bg-color, #e0e0e0);
-            color: var(--tg-theme-text-color, #333);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .effect {
-            background: var(--tg-theme-secondary-bg-color, white);
-            border-radius: 12px;
-            padding: 16px;
-            margin: 10px 0;
-        }
-        
-        .effect input[type="range"] {
-            width: 100%;
-            margin: 10px 0;
-        }
-        
-        .cut-region {
-            margin: 15px 0;
-            padding: 10px;
-            background: var(--tg-theme-bg-color, #f5f5f5);
-            border-radius: 8px;
-        }
-        
-        .cut-sliders {
-            margin: 15px 0;
-        }
-        
-        .cut-slider {
-            margin: 10px 0;
-        }
-        
-        .cut-slider label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .cut-values {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            font-weight: bold;
-        }
-        
-        .status {
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            display: none;
-        }
-        
-        .status.show {
-            display: block;
-        }
-        
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        .region {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            background: rgba(255, 68, 68, 0.3);
-            pointer-events: none;
-        }
-    </style>
+<title>Audio Editor</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@7"></script>
+
+<style>
+
+body{
+font-family:sans-serif;
+background:#f5f5f5;
+padding:20px;
+}
+
+.file{
+background:#2481cc;
+color:white;
+padding:20px;
+border-radius:10px;
+display:block;
+text-align:center;
+cursor:pointer;
+}
+
+.file input{
+display:none;
+}
+
+#waveform{
+height:120px;
+background:white;
+border-radius:10px;
+margin-top:20px;
+}
+
+.controls{
+display:none;
+margin-top:10px;
+gap:10px;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:8px;
+background:#2481cc;
+color:white;
+cursor:pointer;
+}
+
+.effect{
+display:none;
+background:white;
+margin-top:15px;
+padding:15px;
+border-radius:10px;
+}
+
+input[type=range]{
+width:100%;
+}
+
+.range-label{
+display:flex;
+justify-content:space-between;
+font-size:14px;
+margin-top:5px;
+}
+
+</style>
 </head>
-<body>
-    <div style="max-width: 600px; margin: 0 auto;">
-        <h1 style="margin-bottom: 20px;">🎵 Аудиоредактор</h1>
-        
-        <label class="file-select-btn">
-            📁 Выбрать аудиофайл
-            <input type="file" id="fileInput" accept="audio/*">
-        </label>
-        
-        <div id="fileInfo" class="file-info">
-            <div class="file-name" id="fileName"></div>
-            <div class="file-size" id="fileSize"></div>
-        </div>
-        
-        <div id="waveform"></div>
-        
-        <div class="time-display">
-            <span id="currentTime">0:00</span>
-            <span id="duration">0:00</span>
-        </div>
-        
-        <div id="controls" class="controls" style="display: none;">
-            <button class="btn" id="playBtn">▶️ Play</button>
-            <button class="btn" id="pauseBtn">⏸️ Pause</button>
-            <button class="btn secondary" id="stopBtn">⏹️ Stop</button>
-        </div>
-        
-        <div id="effects" style="display: none;">
-            <div class="effect">
-                <h3>🔊 Громкость (усиление до 200%)</h3>
-                <input type="range" id="volume" min="0" max="200" value="100" step="1">
-                <div id="volumeValue">100%</div>
-            </div>
-            
-            <div class="effect">
-                <h3>⚡ Скорость</h3>
-                <input type="range" id="speed" min="50" max="200" value="100">
-                <div id="speedValue">1.0x</div>
-            </div>
-            
-            <div class="effect">
-                <h3>✂️ Обрезка (перетаскивай ползунки)</h3>
-                
-                <div class="cut-region">
-                    <div class="cut-sliders">
-                        <div class="cut-slider">
-                            <label>Начало: <span id="cutStartLabel">0:00</span></label>
-                            <input type="range" id="cutStartSlider" min="0" max="100" value="0" step="0.1">
-                        </div>
-                        <div class="cut-slider">
-                            <label>Конец: <span id="cutEndLabel">0:00</span></label>
-                            <input type="range" id="cutEndSlider" min="0" max="100" value="100" step="0.1">
-                        </div>
-                    </div>
-                    
-                    <div class="cut-values">
-                        <span>От: <span id="cutStart">0:00</span></span>
-                        <span>До: <span id="cutEnd">0:00</span></span>
-                    </div>
-                    
-                    <button class="btn" id="previewCut" style="margin: 10px 0;">👂 Предпросмотр</button>
-                    <button class="btn" id="applyCut" style="margin-top: 10px;">✂️ Применить обрезку</button>
-                </div>
-            </div>
-            
-            <div class="effect">
-                <h3>💾 Экспорт</h3>
-                <select id="format" style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd;">
-                    <option value="mp3">MP3 (через WAV конвертер)</option>
-                    <option value="wav">WAV (без потерь)</option>
-                    <option value="ogg">OGG (через WAV)</option>
-                </select>
-                <button class="btn" id="exportBtn">💾 Скачать аудио</button>
-            </div>
-        </div>
-        
-        <div id="status" class="status"></div>
-    </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        
-        let wavesurfer;
-        let audioFile = null;
-        let audioContext = null;
-        let originalBuffer = null;
-        let isPlayingPreview = false;
-        let previewTimeout = null;
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            // Создаем аудио контекст при взаимодействии с пользователем
-            document.addEventListener('click', () => {
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }, { once: true });
-            
-            wavesurfer = WaveSurfer.create({
-                container: '#waveform',
-                waveColor: '#2481cc',
-                progressColor: '#4a9eff',
-                cursorColor: '#ff4444',
-                barWidth: 2,
-                height: 120,
-                responsive: true,
-                normalize: true,
-                fillParent: true
-            });
-            
-            document.getElementById('fileInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    handleFileSelect(file);
-                }
-            });
-            
-            // Обработчики кнопок
-            document.getElementById('playBtn').addEventListener('click', () => wavesurfer.play());
-            document.getElementById('pauseBtn').addEventListener('click', () => wavesurfer.pause());
-            document.getElementById('stopBtn').addEventListener('click', stopPlayback);
-            
-            // Громкость с усилением
-            document.getElementById('volume').addEventListener('input', (e) => {
-                const val = parseInt(e.target.value);
-                // Усиление: 100% = 1.0, 200% = 2.0
-                const gainValue = val / 100;
-                wavesurfer.setVolume(gainValue);
-                document.getElementById('volumeValue').textContent = val + '%';
-            });
-            
-            // Скорость
-            document.getElementById('speed').addEventListener('input', (e) => {
-                const val = e.target.value / 100;
-                wavesurfer.setPlaybackRate(val);
-                document.getElementById('speedValue').textContent = val.toFixed(1) + 'x';
-            });
-            
-            // Ползунки обрезки
-            document.getElementById('cutStartSlider').addEventListener('input', updateCutFromSliders);
-            document.getElementById('cutEndSlider').addEventListener('input', updateCutFromSliders);
-            
-            // Предпросмотр обрезки
-            document.getElementById('previewCut').addEventListener('click', previewCut);
-            
-            // Применить обрезку
-            document.getElementById('applyCut').addEventListener('click', applyCut);
-            
-            // Экспорт
-            document.getElementById('exportBtn').addEventListener('click', exportAudio);
-            
-            // Обновление времени при воспроизведении
-            wavesurfer.on('audioprocess', () => {
-                document.getElementById('currentTime').textContent = formatTime(wavesurfer.getCurrentTime());
-            });
-            
-            wavesurfer.on('seek', () => {
-                document.getElementById('currentTime').textContent = formatTime(wavesurfer.getCurrentTime());
-            });
-            
-            wavesurfer.on('ready', () => {
-                const duration = wavesurfer.getDuration();
-                document.getElementById('duration').textContent = formatTime(duration);
-                document.getElementById('currentTime').textContent = '0:00';
-                
-                // Обновляем максимальные значения ползунков
-                updateCutSlidersMax();
-            });
-            
-            // Регион для визуализации обрезки
-            let region = null;
-            
-            function updateCutFromSliders() {
-                const duration = wavesurfer.getDuration();
-                if (!duration) return;
-                
-                const startPercent = parseFloat(document.getElementById('cutStartSlider').value);
-                const endPercent = parseFloat(document.getElementById('cutEndSlider').value);
-                
-                // Проверяем, чтобы начало не было больше конца
-                if (startPercent > endPercent) {
-                    if (this.id === 'cutStartSlider') {
-                        document.getElementById('cutStartSlider').value = endPercent;
-                    } else {
-                        document.getElementById('cutEndSlider').value = startPercent;
-                    }
-                    return;
-                }
-                
-                const startTime = (startPercent / 100) * duration;
-                const endTime = (endPercent / 100) * duration;
-                
-                document.getElementById('cutStart').textContent = formatTime(startTime);
-                document.getElementById('cutEnd').textContent = formatTime(endTime);
-                document.getElementById('cutStartLabel').textContent = formatTime(startTime);
-                document.getElementById('cutEndLabel').textContent = formatTime(endTime);
-                
-                // Визуализируем регион обрезки
-                if (region) {
-                    region.remove();
-                }
-                
-                region = wavesurfer.addRegion({
-                    start: startTime,
-                    end: endTime,
-                    color: 'rgba(255, 68, 68, 0.3)',
-                    drag: false,
-                    resize: false
-                });
-            }
-            
-            function updateCutSlidersMax() {
-                const duration = wavesurfer.getDuration();
-                if (!duration) return;
-                
-                // Устанавливаем конец на 100%
-                document.getElementById('cutEndSlider').value = 100;
-                document.getElementById('cutEnd').textContent = formatTime(duration);
-                document.getElementById('cutEndLabel').textContent = formatTime(duration);
-                document.getElementById('cutStart').textContent = '0:00';
-                document.getElementById('cutStartLabel').textContent = '0:00';
-                document.getElementById('cutStartSlider').value = 0;
-                
-                updateCutFromSliders();
-            }
-        });
-        
-        function handleFileSelect(file) {
-            audioFile = file;
-            
-            document.getElementById('fileInfo').classList.add('active');
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = formatBytes(file.size);
-            
-            document.getElementById('controls').style.display = 'flex';
-            document.getElementById('effects').style.display = 'block';
-            
-            const url = URL.createObjectURL(file);
-            wavesurfer.load(url);
-            
-            showStatus('✅ Файл загружен: ' + file.name, 'success');
-        }
-        
-        function stopPlayback() {
-            wavesurfer.stop();
-            wavesurfer.seekTo(0);
-            document.getElementById('currentTime').textContent = '0:00';
-        }
-        
-        function previewCut() {
-            if (previewTimeout) {
-                clearTimeout(previewTimeout);
-            }
-            
-            const duration = wavesurfer.getDuration();
-            const startPercent = parseFloat(document.getElementById('cutStartSlider').value);
-            const endPercent = parseFloat(document.getElementById('cutEndSlider').value);
-            
-            const startTime = (startPercent / 100) * duration;
-            const endTime = (endPercent / 100) * duration;
-            
-            wavesurfer.stop();
-            wavesurfer.seekTo(startPercent / 100);
-            wavesurfer.play();
-            
-            previewTimeout = setTimeout(() => {
-                wavesurfer.pause();
-                wavesurfer.seekTo(startPercent / 100);
-                showStatus('👂 Предпросмотр завершен', 'success');
-            }, (endTime - startTime) * 1000);
-        }
-        
-        async function applyCut() {
-            try {
-                showStatus('✂️ Обрезаем аудио...', 'success');
-                
-                const duration = wavesurfer.getDuration();
-                const startPercent = parseFloat(document.getElementById('cutStartSlider').value);
-                const endPercent = parseFloat(document.getElementById('cutEndSlider').value);
-                
-                const startTime = (startPercent / 100) * duration;
-                const endTime = (endPercent / 100) * duration;
-                
-                const buffer = await wavesurfer.backend.getAudioBuffer();
-                const sampleRate = buffer.sampleRate;
-                const startSample = Math.floor(startTime * sampleRate);
-                const endSample = Math.floor(endTime * sampleRate);
-                
-                // Создаем новый аудиоконтекст если нужно
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                
-                const newBuffer = audioContext.createBuffer(
-                    buffer.numberOfChannels,
-                    endSample - startSample,
-                    sampleRate
-                );
-                
-                for (let i = 0; i < buffer.numberOfChannels; i++) {
-                    const channelData = buffer.getChannelData(i);
-                    newBuffer.copyToChannel(channelData.slice(startSample, endSample), i);
-                }
-                
-                originalBuffer = newBuffer;
-                
-                // Конвертируем в WAV для загрузки в wavesurfer
-                const wav = bufferToWav(newBuffer);
-                const blob = new Blob([wav], { type: 'audio/wav' });
-                const url = URL.createObjectURL(blob);
-                
-                wavesurfer.load(url);
-                
-                // Сбрасываем ползунки для нового файла
-                wavesurfer.once('ready', () => {
-                    updateCutSlidersMax();
-                    showStatus('✅ Аудио успешно обрезано!', 'success');
-                });
-                
-            } catch (err) {
-                console.error('Cut error:', err);
-                showStatus('❌ Ошибка: ' + err.message, 'error');
-            }
-        }
-        
-        async function exportAudio() {
-            try {
-                const format = document.getElementById('format').value;
-                let buffer;
-                
-                if (originalBuffer) {
-                    buffer = originalBuffer;
-                } else {
-                    buffer = await wavesurfer.backend.getAudioBuffer();
-                }
-                
-                if (!buffer) {
-                    throw new Error('Нет аудио для экспорта');
-                }
-                
-                showStatus('💾 Подготавливаем файл...', 'success');
-                
-                // Конвертируем в WAV
-                const wavData = bufferToWav(buffer);
-                const wavBlob = new Blob([wavData], { type: 'audio/wav' });
-                
-                // Для MP3 и OGG используем WAV (в реальном проекте здесь нужна конвертация)
-                let finalBlob = wavBlob;
-                let extension = 'wav';
-                let mimeType = 'audio/wav';
-                
-                if (format === 'mp3') {
-                    // В реальном проекте здесь должна быть конвертация в MP3
-                    // Пока используем WAV с другим расширением
-                    extension = 'mp3';
-                    mimeType = 'audio/mpeg';
-                } else if (format === 'ogg') {
-                    extension = 'ogg';
-                    mimeType = 'audio/ogg';
-                }
-                
-                // Создаем и скачиваем файл
-                const url = URL.createObjectURL(finalBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `audio_${Date.now()}.${extension}`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                // Отправляем уведомление в Telegram (опционально)
-                tg.sendData(JSON.stringify({
-                    action: 'processed',
-                    format: format,
-                    size: finalBlob.size
-                }));
-                
-                showStatus(`✅ Файл сохранен как ${extension.toUpperCase()}`, 'success');
-                
-            } catch (err) {
-                console.error('Export error:', err);
-                showStatus('❌ Ошибка экспорта: ' + err.message, 'error');
-            }
-        }
-        
-        function bufferToWav(buffer) {
-            const numChannels = buffer.numberOfChannels;
-            const sampleRate = buffer.sampleRate;
-            const format = 1; // PCM
-            const bitDepth = 16;
-            
-            const bytesPerSample = bitDepth / 8;
-            const blockAlign = numChannels * bytesPerSample;
-            const dataLength = buffer.length * blockAlign;
-            const bufferLength = 44 + dataLength;
-            
-            const arrayBuffer = new ArrayBuffer(bufferLength);
-            const view = new DataView(arrayBuffer);
-            
-            // RIFF header
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, bufferLength - 8, true);
-            writeString(view, 8, 'WAVE');
-            
-            // fmt subchunk
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, format, true);
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * blockAlign, true);
-            view.setUint16(32, blockAlign, true);
-            view.setUint16(34, bitDepth, true);
-            
-            // data subchunk
-            writeString(view, 36, 'data');
-            view.setUint32(40, dataLength, true);
-            
-            // Write audio data
-            let offset = 44;
-            for (let i = 0; i < buffer.length; i++) {
-                for (let channel = 0; channel < numChannels; channel++) {
-                    let sample = buffer.getChannelData(channel)[i];
-                    sample = Math.max(-1, Math.min(1, sample));
-                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                    view.setInt16(offset, sample, true);
-                    offset += 2;
-                }
-            }
-            
-            return arrayBuffer;
-        }
-        
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
-        }
-        
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
-        function formatBytes(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }
-        
-        function showStatus(message, type) {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = 'status show ' + type;
-            setTimeout(() => {
-                status.classList.remove('show');
-            }, 3000);
-        }
-    </script>
+<body>
+
+<h2>🎵 Аудиоредактор</h2>
+
+<label class="file">
+📁 Выбрать аудио
+<input type="file" id="fileInput" accept="audio/*">
+</label>
+
+<div id="waveform"></div>
+
+<div class="controls" id="controls">
+<button id="play">▶️</button>
+<button id="pause">⏸</button>
+<button id="stop">⏹</button>
+</div>
+
+<div class="effect">
+
+<h3>🔊 Громкость</h3>
+
+<input type="range" id="volume" min="25" max="300" value="100">
+
+<div id="volumeText">100%</div>
+
+</div>
+
+<div class="effect">
+
+<h3>⚡ Скорость</h3>
+
+<input type="range" id="speed" min="50" max="200" value="100">
+
+<div id="speedText">1.0x</div>
+
+</div>
+
+<div class="effect">
+
+<h3>✂️ Обрезка</h3>
+
+Начало
+<input type="range" id="cutStart" min="0" max="100" value="0">
+
+Конец
+<input type="range" id="cutEnd" min="0" max="100" value="100">
+
+<div class="range-label">
+<span id="cutStartTime">0:00</span>
+<span id="cutEndTime">0:00</span>
+</div>
+
+<button id="cutBtn">Применить</button>
+
+</div>
+
+<div class="effect">
+
+<h3>💾 Экспорт</h3>
+
+<button id="exportBtn">Скачать WAV</button>
+
+</div>
+
+<script>
+
+const tg = window.Telegram.WebApp
+tg.ready()
+tg.expand()
+
+let wavesurfer
+let audioBuffer
+let originalBuffer
+
+let volumePercent = 100
+let startPercent = 0
+let endPercent = 100
+
+const ctx = new AudioContext()
+
+wavesurfer = WaveSurfer.create({
+container:"#waveform",
+waveColor:"#2481cc",
+progressColor:"#4a9eff",
+height:120
+})
+
+function formatTime(s){
+
+if(!s) return "0:00"
+
+const m = Math.floor(s/60)
+const sec = Math.floor(s%60)
+
+return m + ":" + sec.toString().padStart(2,"0")
+
+}
+
+document.getElementById("fileInput").addEventListener("change",async e=>{
+
+const file = e.target.files[0]
+
+const arrayBuffer = await file.arrayBuffer()
+
+audioBuffer = await ctx.decodeAudioData(arrayBuffer)
+
+originalBuffer = audioBuffer
+
+wavesurfer.load(URL.createObjectURL(file))
+
+document.getElementById("controls").style.display="flex"
+
+document.querySelectorAll(".effect").forEach(e=>e.style.display="block")
+
+updateCutTimes()
+
+})
+
+document.getElementById("play").onclick = async ()=>{
+
+if(ctx.state==="suspended") await ctx.resume()
+
+wavesurfer.play()
+
+}
+
+document.getElementById("pause").onclick=()=>wavesurfer.pause()
+
+document.getElementById("stop").onclick=()=>{
+
+wavesurfer.stop()
+wavesurfer.seekTo(0)
+
+}
+
+document.getElementById("volume").addEventListener("input",e=>{
+
+volumePercent = parseFloat(e.target.value)
+
+document.getElementById("volumeText").innerText = volumePercent+"%"
+
+applyVolume()
+
+})
+
+function applyVolume(){
+
+const gain = volumePercent/100
+
+const newBuffer = ctx.createBuffer(
+originalBuffer.numberOfChannels,
+originalBuffer.length,
+originalBuffer.sampleRate
+)
+
+for(let ch=0;ch<originalBuffer.numberOfChannels;ch++){
+
+const src = originalBuffer.getChannelData(ch)
+const dst = newBuffer.getChannelData(ch)
+
+for(let i=0;i<src.length;i++){
+
+dst[i] = src[i]*gain
+
+}
+
+}
+
+audioBuffer = newBuffer
+
+const wav = bufferToWav(audioBuffer)
+
+wavesurfer.load(URL.createObjectURL(new Blob([wav],{type:"audio/wav"})))
+
+}
+
+document.getElementById("speed").addEventListener("input",e=>{
+
+const rate = parseFloat(e.target.value)/100
+
+wavesurfer.setPlaybackRate(rate)
+
+document.getElementById("speedText").innerText = rate.toFixed(2)+"x"
+
+})
+
+const cutStartSlider=document.getElementById("cutStart")
+const cutEndSlider=document.getElementById("cutEnd")
+
+cutStartSlider.oninput=()=>{
+startPercent=parseFloat(cutStartSlider.value)
+updateCutTimes()
+}
+
+cutEndSlider.oninput=()=>{
+endPercent=parseFloat(cutEndSlider.value)
+updateCutTimes()
+}
+
+function updateCutTimes(){
+
+if(!audioBuffer) return
+
+const duration = audioBuffer.duration
+
+document.getElementById("cutStartTime").innerText=formatTime(duration*(startPercent/100))
+
+document.getElementById("cutEndTime").innerText=formatTime(duration*(endPercent/100))
+
+}
+
+document.getElementById("cutBtn").onclick=()=>{
+
+const duration=audioBuffer.duration
+
+const start=duration*(startPercent/100)
+const end=duration*(endPercent/100)
+
+const startSample=Math.floor(start*audioBuffer.sampleRate)
+const endSample=Math.floor(end*audioBuffer.sampleRate)
+
+const newBuffer=ctx.createBuffer(
+audioBuffer.numberOfChannels,
+endSample-startSample,
+audioBuffer.sampleRate
+)
+
+for(let ch=0;ch<audioBuffer.numberOfChannels;ch++){
+
+const oldData=audioBuffer.getChannelData(ch)
+const newData=newBuffer.getChannelData(ch)
+
+for(let i=0;i<endSample-startSample;i++){
+
+newData[i]=oldData[i+startSample]
+
+}
+
+}
+
+audioBuffer=newBuffer
+originalBuffer=newBuffer
+
+wavesurfer.load(URL.createObjectURL(new Blob([bufferToWav(audioBuffer)],{type:"audio/wav"})))
+
+updateCutTimes()
+
+}
+
+document.getElementById("exportBtn").onclick=()=>{
+
+const wav=bufferToWav(audioBuffer)
+
+const blob=new Blob([wav],{type:"audio/wav"})
+
+const url=URL.createObjectURL(blob)
+
+const a=document.createElement("a")
+
+a.href=url
+a.download="audio.wav"
+a.click()
+
+URL.revokeObjectURL(url)
+
+}
+
+function bufferToWav(buffer){
+
+const numChannels=buffer.numberOfChannels
+const sampleRate=buffer.sampleRate
+const samples=buffer.length*numChannels
+
+const arrayBuffer=new ArrayBuffer(44+samples*2)
+const view=new DataView(arrayBuffer)
+
+let offset=0
+
+function writeString(s){
+for(let i=0;i<s.length;i++){
+view.setUint8(offset++,s.charCodeAt(i))
+}
+}
+
+writeString("RIFF")
+view.setUint32(offset,36+samples*2,true);offset+=4
+writeString("WAVE")
+writeString("fmt ")
+view.setUint32(offset,16,true);offset+=4
+view.setUint16(offset,1,true);offset+=2
+view.setUint16(offset,numChannels,true);offset+=2
+view.setUint32(offset,sampleRate,true);offset+=4
+view.setUint32(offset,sampleRate*numChannels*2,true);offset+=4
+view.setUint16(offset,numChannels*2,true);offset+=2
+view.setUint16(offset,16,true);offset+=2
+writeString("data")
+view.setUint32(offset,samples*2,true);offset+=4
+
+for(let i=0;i<buffer.length;i++){
+
+for(let ch=0;ch<numChannels;ch++){
+
+let sample=buffer.getChannelData(ch)[i]
+
+sample=Math.max(-1,Math.min(1,sample))
+
+view.setInt16(offset,sample<0?sample*0x8000:sample*0x7FFF,true)
+
+offset+=2
+
+}
+
+}
+
+return arrayBuffer
+
+}
+
+</script>
+
 </body>
 </html>
