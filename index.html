@@ -6,6 +6,8 @@
     <title>Audio Editor</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@wavesurfer/regions@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pitchfinder@2.3.2/lib/pitchfinder.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -14,366 +16,629 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--tg-theme-bg-color, #f5f5f5);
             color: var(--tg-theme-text-color, #333);
             padding: 16px;
         }
         
-        /* Кнопка выбора файла - САМАЯ ГЛАВНАЯ */
-        .file-select-btn {
-            width: 100%;
-            padding: 20px;
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, white);
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 10px 0;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        .file-select-btn input {
-            display: none;
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--tg-theme-button-color, #2481cc);
         }
         
-        /* Информация о файле */
-        .file-info {
-            background: var(--tg-theme-secondary-bg-color, white);
+        .audio-player {
+            background: var(--tg-theme-secondary-bg-color, #fff);
             border-radius: 12px;
             padding: 16px;
-            margin: 10px 0;
-            display: none;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
-        .file-info.active {
-            display: block;
-        }
-        
-        .file-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            word-break: break-all;
-        }
-        
-        .file-size {
-            color: var(--tg-theme-hint-color, #666);
-            font-size: 14px;
-        }
-        
-        /* Плеер */
         #waveform {
             width: 100%;
-            height: 120px;
-            margin: 20px 0;
-            background: var(--tg-theme-secondary-bg-color, white);
+            height: 160px;
+            margin-bottom: 12px;
+            background: var(--tg-theme-bg-color, #f0f0f0);
             border-radius: 8px;
+            position: relative;
+        }
+        
+        .cut-handles {
+            position: relative;
+            height: 30px;
+            margin: 10px 0;
+            background: var(--tg-theme-bg-color, #e0e0e0);
+            border-radius: 15px;
+        }
+        
+        .cut-slider {
+            position: absolute;
+            height: 100%;
+            background: rgba(36, 129, 204, 0.3);
+            border-radius: 15px;
+            cursor: grab;
+        }
+        
+        .cut-handle-left, .cut-handle-right {
+            position: absolute;
+            width: 20px;
+            height: 30px;
+            background: var(--tg-theme-button-color, #2481cc);
+            border-radius: 10px;
+            cursor: ew-resize;
+            top: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .cut-handle-left {
+            left: 0;
+        }
+        
+        .cut-handle-right {
+            right: 0;
+        }
+        
+        .cut-handle-left::after, .cut-handle-right::after {
+            content: '⋮';
+            color: white;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .cut-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #666);
+            margin-top: 5px;
         }
         
         .controls {
             display: flex;
             gap: 10px;
-            margin: 15px 0;
+            justify-content: center;
             flex-wrap: wrap;
+            margin-top: 15px;
         }
         
-        .btn {
-            padding: 12px 24px;
+        .control-btn {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
             border: none;
             border-radius: 8px;
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, white);
+            padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
-            flex: 1;
-            min-width: 100px;
+            transition: opacity 0.2s;
         }
         
-        .btn.secondary {
+        .control-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .control-btn.secondary {
             background: var(--tg-theme-secondary-bg-color, #e0e0e0);
             color: var(--tg-theme-text-color, #333);
         }
         
-        /* Эффекты */
-        .effect {
-            background: var(--tg-theme-secondary-bg-color, white);
+        .control-btn.active {
+            background: #ff4444;
+        }
+        
+        .effect-panel {
+            background: var(--tg-theme-secondary-bg-color, #fff);
             border-radius: 12px;
             padding: 16px;
-            margin: 10px 0;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
         
-        .effect input[type="range"] {
+        .effect-item {
+            background: var(--tg-theme-bg-color, #f8f9fa);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        
+        .effect-item h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .effect-item input[type="range"] {
             width: 100%;
-            margin: 10px 0;
+            margin: 8px 0;
         }
         
-        /* Статус */
+        .effect-value {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #666);
+            text-align: center;
+        }
+        
+        .pitch-presets {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .pitch-preset-btn {
+            flex: 1;
+            min-width: 40px;
+            padding: 5px;
+            background: var(--tg-theme-secondary-bg-color, #e0e0e0);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .time-display {
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        
+        .export-options {
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .format-selector {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        
+        .format-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px;
+            border: 2px solid var(--tg-theme-button-color, #2481cc);
+            background: transparent;
+            color: var(--tg-theme-text-color, #333);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .format-btn.active {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+        }
+        
+        .export-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
         .status {
+            text-align: center;
             padding: 10px;
             border-radius: 8px;
             margin: 10px 0;
             display: none;
         }
         
-        .status.show {
-            display: block;
-        }
-        
         .status.success {
             background: #d4edda;
             color: #155724;
+            display: block;
         }
         
         .status.error {
             background: #f8d7da;
             color: #721c24;
+            display: block;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div style="max-width: 600px; margin: 0 auto;">
-        <h1 style="margin-bottom: 20px;">🎵 Аудиоредактор</h1>
+    <div class="container">
+        <h1>🎵 Audio Editor</h1>
         
-        <!-- КНОПКА ВЫБОРА ФАЙЛА - ТЫКАЙ СЮДА! -->
-        <label class="file-select-btn">
-            📁 Выбрать аудиофайл
-            <input type="file" id="fileInput" accept="audio/*">
-        </label>
-        
-        <!-- Информация о файле -->
-        <div id="fileInfo" class="file-info">
-            <div class="file-name" id="fileName"></div>
-            <div class="file-size" id="fileSize"></div>
-        </div>
-        
-        <!-- Волна (появится после загрузки) -->
-        <div id="waveform"></div>
-        
-        <!-- Кнопки управления (появятся после загрузки) -->
-        <div id="controls" class="controls" style="display: none;">
-            <button class="btn" id="playBtn">▶️ Play</button>
-            <button class="btn" id="pauseBtn">⏸️ Pause</button>
-            <button class="btn secondary" id="stopBtn">⏹️ Stop</button>
-        </div>
-        
-        <!-- Эффекты (появятся после загрузки) -->
-        <div id="effects" style="display: none;">
-            <div class="effect">
-                <h3>🔊 Громкость</h3>
-                <input type="range" id="volume" min="0" max="200" value="100">
-                <div id="volumeValue">100%</div>
+        <div class="audio-player">
+            <div id="waveform"></div>
+            
+            <!-- Ползунки для обрезки -->
+            <div class="cut-handles" id="cut-handles-container" style="display: none;">
+                <div class="cut-slider" id="cut-slider"></div>
+                <div class="cut-handle-left" id="cut-handle-left"></div>
+                <div class="cut-handle-right" id="cut-handle-right"></div>
+            </div>
+            <div class="cut-info" id="cut-info" style="display: none;">
+                <span id="cut-start-time">0:00</span>
+                <span>Выбранный фрагмент</span>
+                <span id="cut-end-time">0:00</span>
             </div>
             
-            <div class="effect">
-                <h3>⚡ Скорость</h3>
-                <input type="range" id="speed" min="50" max="200" value="100">
-                <div id="speedValue">1.0x</div>
+            <div class="time-display">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
             </div>
             
-            <div class="effect">
-                <h3>✂️ Обрезка</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn" id="setStart">Начало</button>
-                    <button class="btn" id="setEnd">Конец</button>
+            <div class="controls">
+                <button class="control-btn" id="play-btn">▶️ Play</button>
+                <button class="control-btn" id="pause-btn">⏸️ Pause</button>
+                <button class="control-btn" id="stop-btn">⏹️ Stop</button>
+                <button class="control-btn secondary" id="cut-mode-btn">✂️ Режим обрезки</button>
+                <button class="control-btn secondary" id="apply-cut-btn" style="display: none;">✅ Применить обрезку</button>
+                <button class="control-btn secondary" id="reset-btn">🔄 Сбросить</button>
+            </div>
+        </div>
+        
+        <div class="effect-panel">
+            <div class="effect-item">
+                <h3>Громкость</h3>
+                <input type="range" id="volume" min="0" max="2" step="0.1" value="1">
+                <div class="effect-value" id="volume-value">100%</div>
+            </div>
+            
+            <div class="effect-item">
+                <h3>Скорость</h3>
+                <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1">
+                <div class="effect-value" id="speed-value">1.0x</div>
+            </div>
+            
+            <div class="effect-item">
+                <h3>Высота тона (полутоны)</h3>
+                <input type="range" id="pitch" min="-12" max="12" step="1" value="0">
+                <div class="effect-value" id="pitch-value">0 полутонов</div>
+                <div class="pitch-presets">
+                    <button class="pitch-preset-btn" data-pitch="-12">-1 окт</button>
+                    <button class="pitch-preset-btn" data-pitch="-5">-5</button>
+                    <button class="pitch-preset-btn" data-pitch="-2">-2</button>
+                    <button class="pitch-preset-btn" data-pitch="0">0</button>
+                    <button class="pitch-preset-btn" data-pitch="2">+2</button>
+                    <button class="pitch-preset-btn" data-pitch="5">+5</button>
+                    <button class="pitch-preset-btn" data-pitch="12">+1 окт</button>
                 </div>
-                <div style="margin-top: 10px;">
-                    <span id="cutStart">0:00</span> - <span id="cutEnd">0:00</span>
-                </div>
-                <button class="btn" id="applyCut" style="margin-top: 10px;">Применить обрезку</button>
-            </div>
-            
-            <div class="effect">
-                <h3>💾 Экспорт</h3>
-                <select id="format" style="width: 100%; padding: 10px; margin: 10px 0;">
-                    <option value="mp3">MP3</option>
-                    <option value="wav">WAV</option>
-                    <option value="ogg">OGG</option>
-                </select>
-                <button class="btn" id="exportBtn">Скачать</button>
             </div>
         </div>
         
-        <div id="status" class="status"></div>
+        <div class="export-options">
+            <h3>Формат экспорта</h3>
+            <div class="format-selector">
+                <button class="format-btn active" data-format="mp3">MP3</button>
+                <button class="format-btn" data-format="wav">WAV</button>
+                <button class="format-btn" data-format="ogg">OGG</button>
+                <button class="format-btn" data-format="m4a">M4A</button>
+            </div>
+            
+            <h3>Качество</h3>
+            <select id="quality" style="width:100%; padding:10px; margin:10px 0;">
+                <option value="64">64 kbps (Низкое)</option>
+                <option value="128" selected>128 kbps (Среднее)</option>
+                <option value="192">192 kbps (Хорошее)</option>
+                <option value="320">320 kbps (Высокое)</option>
+            </select>
+        </div>
+        
+        <button class="export-btn" id="export-btn">💾 Экспортировать аудио</button>
+        <div class="status" id="status"></div>
     </div>
-
+    
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
         
         let wavesurfer;
-        let audioFile = null;
+        let audioContext;
+        let audioBuffer;
+        let originalBuffer;
+        let isCutMode = false;
         let cutStart = 0;
         let cutEnd = 0;
+        let isDragging = false;
+        let activeHandle = null;
         
-        // Ждем загрузку страницы
-        document.addEventListener('DOMContentLoaded', () => {
-            // Инициализируем WaveSurfer
+        // Инициализация WaveSurfer
+        function initWaveform() {
             wavesurfer = WaveSurfer.create({
                 container: '#waveform',
-                waveColor: '#2481cc',
-                progressColor: '#4a9eff',
+                waveColor: tg.themeParams.button_color || '#2481cc',
+                progressColor: tg.themeParams.button_text_color || '#4a9eff',
                 cursorColor: '#ff4444',
                 barWidth: 2,
-                height: 120,
-                responsive: true
+                barRadius: 3,
+                responsive: true,
+                height: 160,
+                plugins: []
             });
             
-            // Обработчик выбора файла - ЭТО РАБОТАЕТ!
-            document.getElementById('fileInput').addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    handleFileSelect(file);
-                }
-            });
-            
-            // Обработчики кнопок
-            document.getElementById('playBtn').addEventListener('click', () => wavesurfer.play());
-            document.getElementById('pauseBtn').addEventListener('click', () => wavesurfer.pause());
-            document.getElementById('stopBtn').addEventListener('click', () => {
-                wavesurfer.stop();
-                wavesurfer.seekTo(0);
-            });
-            
-            // Громкость
-            document.getElementById('volume').addEventListener('input', (e) => {
-                const val = e.target.value / 100;
-                wavesurfer.setVolume(val);
-                document.getElementById('volumeValue').textContent = e.target.value + '%';
-            });
-            
-            // Скорость
-            document.getElementById('speed').addEventListener('input', (e) => {
-                const val = e.target.value / 100;
-                wavesurfer.setPlaybackRate(val);
-                document.getElementById('speedValue').textContent = val.toFixed(1) + 'x';
-            });
-            
-            // Обрезка
-            document.getElementById('setStart').addEventListener('click', () => {
-                cutStart = wavesurfer.getCurrentTime();
-                document.getElementById('cutStart').textContent = formatTime(cutStart);
-                showStatus('Начало обрезки: ' + formatTime(cutStart), 'success');
-            });
-            
-            document.getElementById('setEnd').addEventListener('click', () => {
-                cutEnd = wavesurfer.getCurrentTime();
-                document.getElementById('cutEnd').textContent = formatTime(cutEnd);
-                showStatus('Конец обрезки: ' + formatTime(cutEnd), 'success');
-            });
-            
-            document.getElementById('applyCut').addEventListener('click', async () => {
-                if (cutStart >= cutEnd) {
-                    showStatus('Ошибка: начало должно быть меньше конца', 'error');
-                    return;
-                }
+            wavesurfer.on('ready', function() {
+                updateTime();
                 
-                try {
-                    const buffer = await wavesurfer.backend.getAudioBuffer();
-                    const sampleRate = buffer.sampleRate;
-                    const startSample = Math.floor(cutStart * sampleRate);
-                    const endSample = Math.floor(cutEnd * sampleRate);
-                    
-                    // Создаем новый буфер
-                    const newBuffer = new AudioContext().createBuffer(
-                        buffer.numberOfChannels,
-                        endSample - startSample,
-                        sampleRate
-                    );
-                    
-                    for (let i = 0; i < buffer.numberOfChannels; i++) {
-                        const channelData = buffer.getChannelData(i);
-                        newBuffer.copyToChannel(channelData.slice(startSample, endSample), i);
-                    }
-                    
-                    // Конвертируем в WAV
-                    const wav = bufferToWav(newBuffer);
-                    const blob = new Blob([wav], { type: 'audio/wav' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    wavesurfer.load(url);
-                    showStatus('Аудио обрезано!', 'success');
-                } catch (err) {
-                    showStatus('Ошибка: ' + err.message, 'error');
-                }
+                // Получаем аудиоданные для обработки
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                wavesurfer.backend.getAudioBuffer().then(buffer => {
+                    originalBuffer = buffer;
+                    audioBuffer = buffer;
+                    cutEnd = buffer.duration;
+                });
             });
             
-            // Экспорт
-            document.getElementById('exportBtn').addEventListener('click', async () => {
-                const format = document.getElementById('format').value;
-                const buffer = await wavesurfer.backend.getAudioBuffer();
-                
-                const wav = bufferToWav(buffer);
-                const blob = new Blob([wav], { type: `audio/${format}` });
-                
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `audio.${format}`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                showStatus('Файл скачан!', 'success');
-            });
-        });
-        
-        // Функция обработки файла
-        function handleFileSelect(file) {
-            audioFile = file;
-            
-            // Показываем информацию о файле
-            document.getElementById('fileInfo').classList.add('active');
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = formatBytes(file.size);
-            
-            // Показываем элементы управления
-            document.getElementById('controls').style.display = 'flex';
-            document.getElementById('effects').style.display = 'block';
-            
-            // Загружаем в плеер
-            const url = URL.createObjectURL(file);
-            wavesurfer.load(url);
-            
-            // Обновляем время
-            wavesurfer.on('ready', () => {
-                document.getElementById('duration').textContent = formatTime(wavesurfer.getDuration());
-            });
-            
-            wavesurfer.on('audioprocess', () => {
-                document.getElementById('currentTime').textContent = formatTime(wavesurfer.getCurrentTime());
-            });
-            
-            showStatus('Файл загружен: ' + file.name, 'success');
+            wavesurfer.on('audioprocess', updateTime);
+            wavesurfer.on('seek', updateTime);
         }
         
-        // Вспомогательные функции
+        // Обновление времени
+        function updateTime() {
+            const current = wavesurfer.getCurrentTime();
+            const duration = wavesurfer.getDuration();
+            document.getElementById('current-time').textContent = formatTime(current);
+            document.getElementById('duration').textContent = formatTime(duration);
+        }
+        
         function formatTime(seconds) {
-            if (!seconds) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
         
-        function formatBytes(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        // Загрузка аудио из параметров URL
+        async function loadAudio() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileId = urlParams.get('file_id');
+            const userId = urlParams.get('user_id');
+            
+            if (fileId && userId) {
+                // Здесь должен быть запрос к бэкенду для получения файла
+                showStatus('Загрузка аудио...', 'info');
+                // Временное решение - используем демо-файл
+                const demoAudio = 'https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav';
+                wavesurfer.load(demoAudio);
+            } else {
+                // Демо-режим
+                wavesurfer.load('https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav');
+            }
         }
         
+        // Применение эффектов
+        function applyEffects() {
+            if (!audioBuffer) return;
+            
+            const volume = parseFloat(document.getElementById('volume').value);
+            const speed = parseFloat(document.getElementById('speed').value);
+            const pitch = parseInt(document.getElementById('pitch').value);
+            
+            // Применяем громкость
+            wavesurfer.setVolume(volume);
+            
+            // Применяем скорость
+            wavesurfer.setPlaybackRate(speed);
+            
+            // Обновляем отображение значений
+            document.getElementById('volume-value').textContent = Math.round(volume * 100) + '%';
+            document.getElementById('speed-value').textContent = speed.toFixed(1) + 'x';
+            document.getElementById('pitch-value').textContent = pitch + ' полутонов';
+            
+            // Здесь можно добавить реальную обработку тона с помощью библиотеки pitchfinder
+            if (pitch !== 0) {
+                applyPitchShift(pitch);
+            }
+        }
+        
+        // Функция изменения тона
+        function applyPitchShift(semitones) {
+            if (!audioBuffer) return;
+            
+            showStatus('Применение изменения тона...', 'info');
+            
+            // Коэффициент изменения частоты
+            const pitchFactor = Math.pow(2, semitones / 12);
+            
+            // Создаем новый буфер с измененным тоном
+            const offlineContext = new OfflineAudioContext(
+                audioBuffer.numberOfChannels,
+                audioBuffer.length,
+                audioBuffer.sampleRate
+            );
+            
+            const source = offlineContext.createBufferSource();
+            source.buffer = audioBuffer;
+            
+            // Используем простой ресемплинг для изменения тона
+            // В реальном проекте лучше использовать библиотеку типа SoundTouch
+            source.playbackRate.value = pitchFactor;
+            
+            source.connect(offlineContext.destination);
+            source.start();
+            
+            offlineContext.startRendering().then(renderedBuffer => {
+                audioBuffer = renderedBuffer;
+                
+                // Обновляем WaveSurfer с новым буфером
+                const wavBuffer = bufferToWav(renderedBuffer);
+                const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                const url = URL.createObjectURL(blob);
+                
+                wavesurfer.load(url);
+                showStatus('Тон изменен!', 'success');
+            });
+        }
+        
+        // Активация режима обрезки
+        function toggleCutMode() {
+            isCutMode = !isCutMode;
+            const cutModeBtn = document.getElementById('cut-mode-btn');
+            const cutHandles = document.getElementById('cut-handles-container');
+            const cutInfo = document.getElementById('cut-info');
+            const applyCutBtn = document.getElementById('apply-cut-btn');
+            
+            if (isCutMode) {
+                cutModeBtn.classList.add('active');
+                cutHandles.style.display = 'block';
+                cutInfo.style.display = 'flex';
+                applyCutBtn.style.display = 'inline-block';
+                
+                // Устанавливаем начальные значения обрезки
+                const duration = wavesurfer.getDuration();
+                cutStart = 0;
+                cutEnd = duration;
+                updateCutHandles();
+            } else {
+                cutModeBtn.classList.remove('active');
+                cutHandles.style.display = 'none';
+                cutInfo.style.display = 'none';
+                applyCutBtn.style.display = 'none';
+            }
+        }
+        
+        // Обновление положения ползунков обрезки
+        function updateCutHandles() {
+            const duration = wavesurfer.getDuration();
+            const container = document.getElementById('cut-handles-container');
+            const leftHandle = document.getElementById('cut-handle-left');
+            const rightHandle = document.getElementById('cut-handle-right');
+            const slider = document.getElementById('cut-slider');
+            
+            const leftPercent = (cutStart / duration) * 100;
+            const rightPercent = (cutEnd / duration) * 100;
+            
+            leftHandle.style.left = leftPercent + '%';
+            rightHandle.style.right = (100 - rightPercent) + '%';
+            slider.style.left = leftPercent + '%';
+            slider.style.width = (rightPercent - leftPercent) + '%';
+            
+            document.getElementById('cut-start-time').textContent = formatTime(cutStart);
+            document.getElementById('cut-end-time').textContent = formatTime(cutEnd);
+        }
+        
+        // Обработка перетаскивания ползунков
+        function setupCutHandles() {
+            const container = document.getElementById('cut-handles-container');
+            const leftHandle = document.getElementById('cut-handle-left');
+            const rightHandle = document.getElementById('cut-handle-right');
+            const slider = document.getElementById('cut-slider');
+            
+            const startDrag = (e, handle) => {
+                e.preventDefault();
+                isDragging = true;
+                activeHandle = handle;
+            };
+            
+            const onDrag = (e) => {
+                if (!isDragging) return;
+                
+                const rect = container.getBoundingClientRect();
+                const duration = wavesurfer.getDuration();
+                let x = e.clientX - rect.left;
+                x = Math.max(0, Math.min(rect.width, x));
+                let time = (x / rect.width) * duration;
+                
+                if (activeHandle === 'left') {
+                    cutStart = Math.min(time, cutEnd - 0.1);
+                } else if (activeHandle === 'right') {
+                    cutEnd = Math.max(time, cutStart + 0.1);
+                } else if (activeHandle === 'slider') {
+                    const range = cutEnd - cutStart;
+                    let newStart = time;
+                    let newEnd = newStart + range;
+                    if (newEnd > duration) {
+                        newEnd = duration;
+                        newStart = duration - range;
+                    }
+                    cutStart = Math.max(0, newStart);
+                    cutEnd = Math.min(duration, newEnd);
+                }
+                
+                updateCutHandles();
+            };
+            
+            const stopDrag = () => {
+                isDragging = false;
+                activeHandle = null;
+            };
+            
+            leftHandle.addEventListener('mousedown', (e) => startDrag(e, 'left'));
+            rightHandle.addEventListener('mousedown', (e) => startDrag(e, 'right'));
+            slider.addEventListener('mousedown', (e) => startDrag(e, 'slider'));
+            
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+        
+        // Применение обрезки
+        function applyCut() {
+            if (!audioBuffer || cutStart >= cutEnd) return;
+            
+            showStatus('Применение обрезки...', 'info');
+            
+            const sampleRate = audioBuffer.sampleRate;
+            const startSample = Math.floor(cutStart * sampleRate);
+            const endSample = Math.floor(cutEnd * sampleRate);
+            
+            const newBuffer = audioContext.createBuffer(
+                audioBuffer.numberOfChannels,
+                endSample - startSample,
+                sampleRate
+            );
+            
+            for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+                const channelData = audioBuffer.getChannelData(channel);
+                newBuffer.copyToChannel(channelData.slice(startSample, endSample), channel);
+            }
+            
+            audioBuffer = newBuffer;
+            
+            // Обновляем WaveSurfer
+            const wavBuffer = bufferToWav(newBuffer);
+            const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            
+            wavesurfer.load(url);
+            
+            // Сбрасываем режим обрезки
+            toggleCutMode();
+            showStatus('Обрезка применена!', 'success');
+        }
+        
+        // Конвертация Buffer в WAV
         function bufferToWav(buffer) {
             const numChannels = buffer.numberOfChannels;
             const sampleRate = buffer.sampleRate;
-            const format = 1;
+            const format = 1; // PCM
             const bitDepth = 16;
             
-            const bytesPerSample = bitDepth / 8;
-            const blockAlign = numChannels * bytesPerSample;
-            const dataLength = buffer.length * blockAlign;
-            const bufferLength = 44 + dataLength;
+            let bytesPerSample = bitDepth / 8;
+            let blockAlign = numChannels * bytesPerSample;
             
-            const arrayBuffer = new ArrayBuffer(bufferLength);
-            const view = new DataView(arrayBuffer);
+            let dataLength = buffer.length * blockAlign;
+            let bufferLength = 44 + dataLength;
+            
+            let arrayBuffer = new ArrayBuffer(bufferLength);
+            let view = new DataView(arrayBuffer);
             
             // RIFF header
             writeString(view, 0, 'RIFF');
@@ -415,14 +680,128 @@
             }
         }
         
+        // Экспорт аудио
+        function exportAudio() {
+            const format = document.querySelector('.format-btn.active').dataset.format;
+            const quality = document.getElementById('quality').value;
+            
+            showStatus('Подготовка к экспорту...', 'info');
+            
+            if (!audioBuffer) {
+                showStatus('Нет аудио для экспорта', 'error');
+                return;
+            }
+            
+            try {
+                // Конвертируем в WAV
+                const wavBuffer = bufferToWav(audioBuffer);
+                let blob;
+                let mimeType;
+                
+                // Определяем MIME-тип
+                switch(format) {
+                    case 'mp3':
+                        mimeType = 'audio/mpeg';
+                        break;
+                    case 'wav':
+                        mimeType = 'audio/wav';
+                        break;
+                    case 'ogg':
+                        mimeType = 'audio/ogg';
+                        break;
+                    case 'm4a':
+                        mimeType = 'audio/mp4';
+                        break;
+                    default:
+                        mimeType = 'audio/wav';
+                }
+                
+                blob = new Blob([wavBuffer], { type: mimeType });
+                
+                // Создаем ссылку для скачивания
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `audio_edited.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('Готово! Файл сохранен', 'success');
+                
+                // Отправляем уведомление боту
+                tg.sendData(JSON.stringify({
+                    action: 'processed',
+                    format: format,
+                    quality: quality,
+                    duration: audioBuffer.duration
+                }));
+            } catch (error) {
+                showStatus('Ошибка при экспорте: ' + error.message, 'error');
+            }
+        }
+        
         function showStatus(message, type) {
             const status = document.getElementById('status');
             status.textContent = message;
-            status.className = 'status show ' + type;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
             setTimeout(() => {
-                status.classList.remove('show');
+                status.style.display = 'none';
             }, 3000);
         }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            initWaveform();
+            loadAudio();
+            setupCutHandles();
+            
+            // Обработчики кнопок
+            document.getElementById('play-btn').addEventListener('click', () => wavesurfer.play());
+            document.getElementById('pause-btn').addEventListener('click', () => wavesurfer.pause());
+            document.getElementById('stop-btn').addEventListener('click', () => wavesurfer.stop());
+            
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                wavesurfer.stop();
+                wavesurfer.seekTo(0);
+                document.getElementById('volume').value = 1;
+                document.getElementById('speed').value = 1;
+                document.getElementById('pitch').value = 0;
+                audioBuffer = originalBuffer;
+                applyEffects();
+                showStatus('Сброшено к оригиналу', 'success');
+            });
+            
+            document.getElementById('cut-mode-btn').addEventListener('click', toggleCutMode);
+            document.getElementById('apply-cut-btn').addEventListener('click', applyCut);
+            
+            // Эффекты
+            document.getElementById('volume').addEventListener('input', applyEffects);
+            document.getElementById('speed').addEventListener('input', applyEffects);
+            document.getElementById('pitch').addEventListener('input', applyEffects);
+            
+            // Пресеты тона
+            document.querySelectorAll('.pitch-preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const pitch = parseInt(btn.dataset.pitch);
+                    document.getElementById('pitch').value = pitch;
+                    applyEffects();
+                });
+            });
+            
+            // Форматы
+            document.querySelectorAll('.format-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+            
+            // Экспорт
+            document.getElementById('export-btn').addEventListener('click', exportAudio);
+        });
     </script>
 </body>
 </html>
