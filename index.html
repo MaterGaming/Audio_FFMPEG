@@ -25,10 +25,124 @@
             margin: 0 auto;
         }
         
-        h1 {
-            font-size: 24px;
+        /* Экран загрузки файла */
+        .upload-screen {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            border-radius: 20px;
             margin-bottom: 20px;
-            color: var(--tg-theme-button-color, #2481cc);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .upload-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtitle {
+            color: var(--tg-theme-hint-color, #666);
+            margin-bottom: 30px;
+        }
+        
+        .upload-area {
+            border: 3px dashed var(--tg-theme-button-color, #2481cc);
+            border-radius: 20px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            background: rgba(36, 129, 204, 0.1);
+        }
+        
+        .upload-area.dragover {
+            background: rgba(36, 129, 204, 0.2);
+            border-color: #ff4444;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 16px 32px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: opacity 0.2s;
+        }
+        
+        .file-input-label:hover {
+            opacity: 0.9;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .supported-formats {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #999);
+            margin-top: 20px;
+        }
+        
+        /* Экран редактора */
+        .editor-screen {
+            display: none;
+        }
+        
+        .file-header {
+            background: var(--tg-theme-secondary-bg-color, #fff);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .file-icon {
+            font-size: 24px;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #666);
+        }
+        
+        .new-file-btn {
+            padding: 10px 16px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
         }
         
         .audio-player {
@@ -36,21 +150,30 @@
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
         
         #waveform {
             width: 100%;
-            height: 120px;
+            height: 150px;
             margin-bottom: 12px;
             background: var(--tg-theme-bg-color, #f0f0f0);
             border-radius: 8px;
         }
         
-        .controls {
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-family: monospace;
+            font-size: 14px;
+            margin: 8px 0;
+            color: var(--tg-theme-hint-color, #666);
+        }
+        
+        .playback-controls {
             display: flex;
             gap: 10px;
             justify-content: center;
+            margin: 15px 0;
             flex-wrap: wrap;
         }
         
@@ -59,14 +182,11 @@
             color: var(--tg-theme-button-text-color, #fff);
             border: none;
             border-radius: 8px;
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 16px;
             cursor: pointer;
             transition: opacity 0.2s;
-        }
-        
-        .control-btn:hover {
-            opacity: 0.9;
+            min-width: 100px;
         }
         
         .control-btn.secondary {
@@ -74,68 +194,96 @@
             color: var(--tg-theme-text-color, #333);
         }
         
-        .effect-panel {
+        .effects-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .effect-block {
             background: var(--tg-theme-secondary-bg-color, #fff);
             border-radius: 12px;
             padding: 16px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
         }
         
-        .effect-item {
-            background: var(--tg-theme-bg-color, #f8f9fa);
-            border-radius: 8px;
-            padding: 12px;
-        }
-        
-        .effect-item h3 {
-            margin-bottom: 10px;
+        .effect-block h3 {
+            margin-bottom: 15px;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .effect-item input[type="range"] {
+        .effect-block input[type="range"] {
             width: 100%;
-            margin: 8px 0;
+            margin: 10px 0;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--tg-theme-button-color, #2481cc);
         }
         
         .effect-value {
+            text-align: center;
             font-size: 14px;
             color: var(--tg-theme-hint-color, #666);
+            font-weight: 500;
         }
         
-        .time-display {
-            display: flex;
-            justify-content: space-between;
-            font-family: monospace;
+        .cut-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .cut-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            cursor: pointer;
             font-size: 14px;
-            margin: 8px 0;
         }
         
-        .export-options {
+        .cut-btn.reset {
+            grid-column: span 2;
+            background: #ff4444;
+        }
+        
+        .cut-info {
+            margin-top: 10px;
+            padding: 8px;
+            background: var(--tg-theme-bg-color, #f5f5f5);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .export-section {
             background: var(--tg-theme-secondary-bg-color, #fff);
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 20px;
         }
         
-        .format-selector {
-            display: flex;
+        .format-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            margin: 10px 0;
-            flex-wrap: wrap;
+            margin: 15px 0;
         }
         
         .format-btn {
-            flex: 1;
-            min-width: 60px;
-            padding: 8px;
+            padding: 12px;
             border: 2px solid var(--tg-theme-button-color, #2481cc);
             background: transparent;
             color: var(--tg-theme-text-color, #333);
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
         }
         
         .format-btn.active {
@@ -143,99 +291,185 @@
             color: var(--tg-theme-button-text-color, #fff);
         }
         
+        .quality-select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid var(--tg-theme-hint-color, #ddd);
+            border-radius: 8px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #333);
+        }
+        
         .export-btn {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: var(--tg-theme-button-color, #2481cc);
             color: var(--tg-theme-button-text-color, #fff);
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
+            margin: 15px 0;
         }
         
-        .status {
+        .status-message {
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             margin: 10px 0;
             display: none;
         }
         
-        .status.success {
+        .status-message.success {
             background: #d4edda;
             color: #155724;
             display: block;
         }
         
-        .status.error {
+        .status-message.error {
             background: #f8d7da;
             color: #721c24;
             display: block;
+        }
+        
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+        }
+        
+        @media (max-width: 500px) {
+            .format-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .playback-controls {
+                flex-direction: column;
+            }
+            
+            .control-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎵 Audio Editor</h1>
-        
-        <div class="audio-player">
-            <div id="waveform"></div>
-            <div class="time-display">
-                <span id="current-time">0:00</span>
-                <span id="duration">0:00</span>
+        <!-- Экран загрузки файла (только свои файлы!) -->
+        <div id="uploadScreen" class="upload-screen">
+            <div class="upload-icon">🎵</div>
+            <div class="upload-title">Загрузите аудиофайл</div>
+            <div class="upload-subtitle">Выберите файл с вашего устройства для редактирования</div>
+            
+            <div id="uploadArea" class="upload-area">
+                <div style="font-size: 40px; margin-bottom: 10px;">📁</div>
+                <div style="margin-bottom: 15px;">Перетащите файл сюда или нажмите для выбора</div>
+                
+                <label for="audioFile" class="file-input-label">
+                    Выбрать аудиофайл
+                </label>
+                <input type="file" id="audioFile" class="file-input" accept="audio/*">
             </div>
-            <div class="controls">
-                <button class="control-btn" id="play-btn">▶️ Play</button>
-                <button class="control-btn" id="pause-btn">⏸️ Pause</button>
-                <button class="control-btn" id="stop-btn">⏹️ Stop</button>
-                <button class="control-btn secondary" id="cut-btn">✂️ Обрезать</button>
-                <button class="control-btn secondary" id="reset-btn">🔄 Сбросить</button>
+            
+            <div class="supported-formats">
+                Поддерживаемые форматы: MP3, WAV, OGG, M4A, AAC, FLAC
             </div>
         </div>
         
-        <div class="effect-panel">
-            <div class="effect-item">
-                <h3>Громкость</h3>
-                <input type="range" id="volume" min="0" max="2" step="0.1" value="1">
-                <div class="effect-value" id="volume-value">100%</div>
+        <!-- Экран редактора (появляется после загрузки файла) -->
+        <div id="editorScreen" class="editor-screen">
+            <div class="file-header">
+                <span class="file-icon">🎵</span>
+                <div class="file-info">
+                    <div class="file-name" id="fileName">Загрузка...</div>
+                    <div class="file-size" id="fileSize"></div>
+                </div>
+                <button class="new-file-btn" id="newFileBtn">
+                    📂 Новый файл
+                </button>
             </div>
             
-            <div class="effect-item">
-                <h3>Скорость</h3>
-                <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1">
-                <div class="effect-value" id="speed-value">1.0x</div>
+            <!-- Аудиоплеер с визуализацией -->
+            <div class="audio-player">
+                <div id="waveform"></div>
+                
+                <div class="time-info">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                </div>
+                
+                <div class="playback-controls">
+                    <button class="control-btn" id="playBtn">▶️ Воспроизвести</button>
+                    <button class="control-btn" id="pauseBtn">⏸️ Пауза</button>
+                    <button class="control-btn secondary" id="stopBtn">⏹️ Стоп</button>
+                </div>
             </div>
             
-            <div class="effect-item">
-                <h3>Высота тона</h3>
-                <input type="range" id="pitch" min="-12" max="12" step="1" value="0">
-                <div class="effect-value" id="pitch-value">0 полутонов</div>
+            <!-- Эффекты -->
+            <div class="effects-panel">
+                <!-- Громкость -->
+                <div class="effect-block">
+                    <h3>🔊 Громкость</h3>
+                    <input type="range" id="volumeSlider" min="0" max="200" value="100" step="1">
+                    <div class="effect-value" id="volumeValue">100%</div>
+                </div>
+                
+                <!-- Скорость -->
+                <div class="effect-block">
+                    <h3>⚡ Скорость воспроизведения</h3>
+                    <input type="range" id="speedSlider" min="50" max="200" value="100" step="5">
+                    <div class="effect-value" id="speedValue">1.0x</div>
+                </div>
+                
+                <!-- Высота тона -->
+                <div class="effect-block">
+                    <h3>🎼 Высота тона (Pitch)</h3>
+                    <input type="range" id="pitchSlider" min="-12" max="12" value="0" step="1">
+                    <div class="effect-value" id="pitchValue">0 полутонов</div>
+                </div>
+                
+                <!-- Обрезка -->
+                <div class="effect-block">
+                    <h3>✂️ Обрезка</h3>
+                    <div class="cut-controls">
+                        <button class="cut-btn" id="setStartBtn">Начало</button>
+                        <button class="cut-btn" id="setEndBtn">Конец</button>
+                        <button class="cut-btn" id="applyCutBtn">Применить обрезку</button>
+                        <button class="cut-btn reset" id="resetCutBtn">Сбросить</button>
+                    </div>
+                    <div class="cut-info">
+                        <span id="cutStartDisplay">0:00</span> — <span id="cutEndDisplay">0:00</span>
+                    </div>
+                </div>
             </div>
+            
+            <!-- Экспорт -->
+            <div class="export-section">
+                <h3>💾 Экспортировать аудио</h3>
+                
+                <div class="format-grid">
+                    <button class="format-btn active" data-format="mp3">MP3</button>
+                    <button class="format-btn" data-format="wav">WAV</button>
+                    <button class="format-btn" data-format="ogg">OGG</button>
+                    <button class="format-btn" data-format="m4a">M4A</button>
+                </div>
+                
+                <select id="qualitySelect" class="quality-select">
+                    <option value="64">64 kbps (Экономия места)</option>
+                    <option value="128" selected>128 kbps (Стандартное)</option>
+                    <option value="192">192 kbps (Хорошее качество)</option>
+                    <option value="320">320 kbps (Отличное качество)</option>
+                </select>
+                
+                <button class="export-btn" id="exportBtn">
+                    ⬇️ Скачать обработанный файл
+                </button>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
         </div>
-        
-        <div class="export-options">
-            <h3>Формат экспорта</h3>
-            <div class="format-selector">
-                <button class="format-btn active" data-format="mp3">MP3</button>
-                <button class="format-btn" data-format="wav">WAV</button>
-                <button class="format-btn" data-format="ogg">OGG</button>
-                <button class="format-btn" data-format="m4a">M4A</button>
-            </div>
-            
-            <h3>Качество</h3>
-            <select id="quality" style="width:100%; padding:10px; margin:10px 0;">
-                <option value="64">64 kbps (Низкое)</option>
-                <option value="128" selected>128 kbps (Среднее)</option>
-                <option value="192">192 kbps (Хорошее)</option>
-                <option value="320">320 kbps (Высокое)</option>
-            </select>
-        </div>
-        
-        <button class="export-btn" id="export-btn">💾 Экспортировать аудио</button>
-        <div class="status" id="status"></div>
     </div>
     
     <script>
@@ -243,16 +477,20 @@
         tg.ready();
         tg.expand();
         
-        let wavesurfer;
-        let audioContext;
-        let audioBuffer;
-        let originalBuffer;
+        // Глобальные переменные
+        let wavesurfer = null;
+        let audioBuffer = null;
+        let originalBuffer = null;
+        let currentFile = null;
         let cutStart = 0;
         let cutEnd = 0;
-        let isCutMode = false;
         
         // Инициализация WaveSurfer
-        function initWaveform() {
+        function initWaveSurfer() {
+            if (wavesurfer) {
+                wavesurfer.destroy();
+            }
+            
             wavesurfer = WaveSurfer.create({
                 container: '#waveform',
                 waveColor: tg.themeParams.button_color || '#2481cc',
@@ -261,18 +499,20 @@
                 barWidth: 2,
                 barRadius: 3,
                 responsive: true,
-                height: 120
+                height: 150,
+                normalize: true,
+                partialRender: true,
+                backend: 'WebAudio'
             });
             
+            // События
             wavesurfer.on('ready', function() {
-                duration = wavesurfer.getDuration();
-                updateTime();
+                const duration = wavesurfer.getDuration();
+                document.getElementById('duration').textContent = formatTime(duration);
                 
-                // Получаем аудиоданные для обработки
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 wavesurfer.backend.getAudioBuffer().then(buffer => {
-                    originalBuffer = buffer;
                     audioBuffer = buffer;
+                    originalBuffer = buffer;
                 });
             });
             
@@ -282,139 +522,273 @@
         
         // Обновление времени
         function updateTime() {
-            const current = wavesurfer.getCurrentTime();
-            const duration = wavesurfer.getDuration();
-            document.getElementById('current-time').textContent = formatTime(current);
-            document.getElementById('duration').textContent = formatTime(duration);
+            if (wavesurfer) {
+                const current = wavesurfer.getCurrentTime() || 0;
+                document.getElementById('currentTime').textContent = formatTime(current);
+            }
         }
         
+        // Форматирование времени
         function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
         
-        // Загрузка аудио из параметров URL
-        async function loadAudio() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const fileId = urlParams.get('file_id');
-            const userId = urlParams.get('user_id');
+        // Форматирование размера файла
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        // Загрузка файла
+        function loadAudioFile(file) {
+            currentFile = file;
             
-            if (fileId && userId) {
-                // Здесь должен быть запрос к бэкенду для получения файла
-                // Временное решение - используем демо-файл
-                const demoAudio = 'https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav';
-                wavesurfer.load(demoAudio);
-            } else {
-                // Демо-режим
-                wavesurfer.load('https://www2.cs.uic.edu/~i101/SoundFiles/CantinaBand60.wav');
+            // Обновляем информацию о файле
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            
+            // Создаем URL и загружаем в WaveSurfer
+            const url = URL.createObjectURL(file);
+            
+            if (!wavesurfer) {
+                initWaveSurfer();
             }
+            
+            wavesurfer.load(url);
+            
+            // Показываем редактор
+            document.getElementById('uploadScreen').style.display = 'none';
+            document.getElementById('editorScreen').style.display = 'block';
+            
+            // Очищаем URL после загрузки
+            wavesurfer.once('ready', () => {
+                URL.revokeObjectURL(url);
+            });
         }
         
-        // Применение эффектов
-        function applyEffects() {
-            if (!audioBuffer) return;
-            
-            const volume = parseFloat(document.getElementById('volume').value);
-            const speed = parseFloat(document.getElementById('speed').value);
-            const pitch = parseInt(document.getElementById('pitch').value);
-            
-            // Здесь должна быть реальная обработка аудио
-            // Для демо просто меняем скорость воспроизведения
-            wavesurfer.setPlaybackRate(speed);
-            
-            // Обновляем отображение значений
-            document.getElementById('volume-value').textContent = Math.round(volume * 100) + '%';
-            document.getElementById('speed-value').textContent = speed.toFixed(1) + 'x';
-            document.getElementById('pitch-value').textContent = pitch + ' полутонов';
-        }
+        // Обработка выбора файла
+        document.getElementById('audioFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadAudioFile(file);
+            }
+        });
         
-        // Обрезка аудио
-        function cutAudio() {
-            if (!isCutMode) {
+        // Drag & Drop
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('audio/')) {
+                loadAudioFile(file);
+            } else {
+                showStatus('Пожалуйста, выберите аудиофайл', 'error');
+            }
+        });
+        
+        uploadArea.addEventListener('click', () => {
+            document.getElementById('audioFile').click();
+        });
+        
+        // Кнопка "Новый файл"
+        document.getElementById('newFileBtn').addEventListener('click', () => {
+            document.getElementById('uploadScreen').style.display = 'flex';
+            document.getElementById('editorScreen').style.display = 'none';
+            if (wavesurfer) {
+                wavesurfer.destroy();
+                wavesurfer = null;
+            }
+            document.getElementById('audioFile').value = '';
+        });
+        
+        // Кнопки управления
+        document.getElementById('playBtn').addEventListener('click', () => {
+            if (wavesurfer) wavesurfer.play();
+        });
+        
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            if (wavesurfer) wavesurfer.pause();
+        });
+        
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            if (wavesurfer) {
+                wavesurfer.stop();
+                wavesurfer.seekTo(0);
+            }
+        });
+        
+        // Громкость
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            const value = e.target.value / 100;
+            if (wavesurfer) wavesurfer.setVolume(value);
+            document.getElementById('volumeValue').textContent = e.target.value + '%';
+        });
+        
+        // Скорость
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            const value = e.target.value / 100;
+            if (wavesurfer) wavesurfer.setPlaybackRate(value);
+            document.getElementById('speedValue').textContent = value.toFixed(1) + 'x';
+        });
+        
+        // Pitch (в демо-версии просто отображаем значение)
+        document.getElementById('pitchSlider').addEventListener('input', (e) => {
+            const value = e.target.value;
+            document.getElementById('pitchValue').textContent = value + ' полутонов';
+        });
+        
+        // Обрезка - установка начала
+        document.getElementById('setStartBtn').addEventListener('click', () => {
+            if (wavesurfer) {
                 cutStart = wavesurfer.getCurrentTime();
-                isCutMode = true;
-                document.getElementById('cut-btn').style.background = '#ff4444';
-                showStatus('Выберите конец обрезки', 'info');
-            } else {
-                cutEnd = wavesurfer.getCurrentTime();
-                if (cutEnd > cutStart) {
-                    wavesurfer.backend.getAudioBuffer().then(buffer => {
-                        const sampleRate = buffer.sampleRate;
-                        const startSample = Math.floor(cutStart * sampleRate);
-                        const endSample = Math.floor(cutEnd * sampleRate);
-                        const newBuffer = audioContext.createBuffer(
-                            buffer.numberOfChannels,
-                            endSample - startSample,
-                            sampleRate
-                        );
-                        
-                        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-                            const channelData = buffer.getChannelData(channel);
-                            newBuffer.copyToChannel(channelData.slice(startSample, endSample), channel);
-                        }
-                        
-                        audioBuffer = newBuffer;
-                        const wav = bufferToWav(newBuffer);
-                        const blob = new Blob([wav], { type: 'audio/wav' });
-                        const url = URL.createObjectURL(blob);
-                        wavesurfer.load(url);
-                    });
-                }
-                isCutMode = false;
-                document.getElementById('cut-btn').style.background = '';
-                showStatus('Аудио обрезано', 'success');
+                document.getElementById('cutStartDisplay').textContent = formatTime(cutStart);
+                showStatus('Начало обрезки установлено', 'info');
             }
-        }
+        });
         
-        // Конвертация Buffer в WAV
-        function bufferToWav(buffer) {
-            const numChannels = buffer.numberOfChannels;
-            const sampleRate = buffer.sampleRate;
-            const format = 1; // PCM
-            const bitDepth = 16;
+        // Обрезка - установка конца
+        document.getElementById('setEndBtn').addEventListener('click', () => {
+            if (wavesurfer) {
+                cutEnd = wavesurfer.getCurrentTime();
+                document.getElementById('cutEndDisplay').textContent = formatTime(cutEnd);
+                showStatus('Конец обрезки установлен', 'info');
+            }
+        });
+        
+        // Применить обрезку
+        document.getElementById('applyCutBtn').addEventListener('click', async () => {
+            if (!wavesurfer) return;
             
-            let bytesPerSample = bitDepth / 8;
-            let blockAlign = numChannels * bytesPerSample;
-            
-            let dataLength = buffer.length * blockAlign;
-            let bufferLength = 44 + dataLength;
-            
-            let arrayBuffer = new ArrayBuffer(bufferLength);
-            let view = new DataView(arrayBuffer);
-            
-            // RIFF header
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, bufferLength - 8, true);
-            writeString(view, 8, 'WAVE');
-            
-            // fmt subchunk
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, format, true);
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * blockAlign, true);
-            view.setUint16(32, blockAlign, true);
-            view.setUint16(34, bitDepth, true);
-            
-            // data subchunk
-            writeString(view, 36, 'data');
-            view.setUint32(40, dataLength, true);
-            
-            // Write audio data
-            let offset = 44;
-            for (let i = 0; i < buffer.length; i++) {
-                for (let channel = 0; channel < numChannels; channel++) {
-                    let sample = buffer.getChannelData(channel)[i];
-                    sample = Math.max(-1, Math.min(1, sample));
-                    sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-                    view.setInt16(offset, sample, true);
-                    offset += 2;
-                }
+            if (cutStart >= cutEnd) {
+                showStatus('Некорректный диапазон: начало должно быть меньше конца', 'error');
+                return;
             }
             
-            return arrayBuffer;
+            try {
+                showStatus('Обрезка аудио...', 'info');
+                
+                const buffer = await wavesurfer.backend.getAudioBuffer();
+                const sampleRate = buffer.sampleRate;
+                const startSample = Math.floor(cutStart * sampleRate);
+                const endSample = Math.floor(cutEnd * sampleRate);
+                
+                // Создаем новый буфер
+                const offlineCtx = new OfflineAudioContext(
+                    buffer.numberOfChannels,
+                    endSample - startSample,
+                    sampleRate
+                );
+                
+                const newBuffer = offlineCtx.createBuffer(
+                    buffer.numberOfChannels,
+                    endSample - startSample,
+                    sampleRate
+                );
+                
+                for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+                    const channelData = buffer.getChannelData(channel);
+                    newBuffer.copyToChannel(channelData.slice(startSample, endSample), channel);
+                }
+                
+                // Конвертируем в WAV и загружаем
+                const wavBlob = await bufferToWav(newBuffer);
+                const url = URL.createObjectURL(wavBlob);
+                
+                wavesurfer.load(url);
+                
+                cutStart = 0;
+                cutEnd = 0;
+                document.getElementById('cutStartDisplay').textContent = '0:00';
+                document.getElementById('cutEndDisplay').textContent = '0:00';
+                
+                showStatus('Аудио успешно обрезано!', 'success');
+            } catch (error) {
+                showStatus('Ошибка при обрезке: ' + error.message, 'error');
+            }
+        });
+        
+        // Сброс обрезки
+        document.getElementById('resetCutBtn').addEventListener('click', () => {
+            cutStart = 0;
+            cutEnd = 0;
+            document.getElementById('cutStartDisplay').textContent = '0:00';
+            document.getElementById('cutEndDisplay').textContent = '0:00';
+            
+            if (originalBuffer && wavesurfer) {
+                // Возвращаем оригинал
+                const wavBlob = bufferToWav(originalBuffer);
+                const url = URL.createObjectURL(wavBlob);
+                wavesurfer.load(url);
+            }
+            
+            showStatus('Обрезка сброшена', 'info');
+        });
+        
+        // Конвертация буфера в WAV
+        function bufferToWav(buffer) {
+            return new Promise((resolve) => {
+                const numChannels = buffer.numberOfChannels;
+                const sampleRate = buffer.sampleRate;
+                const format = 1;
+                const bitDepth = 16;
+                
+                const bytesPerSample = bitDepth / 8;
+                const blockAlign = numChannels * bytesPerSample;
+                const dataLength = buffer.length * blockAlign;
+                const bufferLength = 44 + dataLength;
+                
+                const arrayBuffer = new ArrayBuffer(bufferLength);
+                const view = new DataView(arrayBuffer);
+                
+                // RIFF header
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, bufferLength - 8, true);
+                writeString(view, 8, 'WAVE');
+                
+                // fmt subchunk
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, format, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * blockAlign, true);
+                view.setUint16(32, blockAlign, true);
+                view.setUint16(34, bitDepth, true);
+                
+                // data subchunk
+                writeString(view, 36, 'data');
+                view.setUint32(40, dataLength, true);
+                
+                // Write audio data
+                let offset = 44;
+                for (let i = 0; i < buffer.length; i++) {
+                    for (let channel = 0; channel < numChannels; channel++) {
+                        let sample = buffer.getChannelData(channel)[i];
+                        sample = Math.max(-1, Math.min(1, sample));
+                        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+                        view.setInt16(offset, sample, true);
+                        offset += 2;
+                    }
+                }
+                
+                resolve(new Blob([arrayBuffer], { type: 'audio/wav' }));
+            });
         }
         
         function writeString(view, offset, string) {
@@ -423,97 +797,63 @@
             }
         }
         
-        // Экспорт аудио
-        function exportAudio() {
-            const format = document.querySelector('.format-btn.active').dataset.format;
-            const quality = document.getElementById('quality').value;
-            
-            showStatus('Обработка...', 'info');
-            
-            if (!audioBuffer) {
-                showStatus('Нет аудио для экспорта', 'error');
+        // Выбор формата
+        document.querySelectorAll('.format-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Экспорт
+        document.getElementById('exportBtn').addEventListener('click', async () => {
+            if (!wavesurfer) {
+                showStatus('Сначала загрузите аудиофайл', 'error');
                 return;
             }
             
-            // Конвертируем в выбранный формат
-            const wavBuffer = bufferToWav(audioBuffer);
-            let blob;
-            
-            switch(format) {
-                case 'mp3':
-                    // Для MP3 нужна дополнительная библиотека
-                    blob = new Blob([wavBuffer], { type: 'audio/mp3' });
-                    break;
-                case 'wav':
-                    blob = new Blob([wavBuffer], { type: 'audio/wav' });
-                    break;
-                default:
-                    blob = new Blob([wavBuffer], { type: `audio/${format}` });
+            try {
+                showStatus('Подготовка файла...', 'info');
+                
+                const buffer = await wavesurfer.backend.getAudioBuffer();
+                const format = document.querySelector('.format-btn.active').dataset.format;
+                
+                // Конвертируем в WAV (для демо, в реальном проекте нужна конвертация в разные форматы)
+                const wavBlob = await bufferToWav(buffer);
+                
+                // Создаем ссылку для скачивания
+                const url = URL.createObjectURL(wavBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `edited_audio.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('Файл готов к скачиванию!', 'success');
+                
+                // Уведомляем Telegram
+                tg.sendData(JSON.stringify({
+                    action: 'exported',
+                    format: format
+                }));
+                
+            } catch (error) {
+                showStatus('Ошибка при экспорте: ' + error.message, 'error');
             }
-            
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `audio_edited.${format}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showStatus('Готово!', 'success');
-            
-            // Отправляем уведомление боту
-            tg.sendData(JSON.stringify({
-                action: 'processed',
-                format: format,
-                quality: quality
-            }));
-        }
+        });
         
+        // Показать статус
         function showStatus(message, type) {
-            const status = document.getElementById('status');
+            const status = document.getElementById('statusMessage');
             status.textContent = message;
-            status.className = `status ${type}`;
+            status.className = 'status-message ' + type;
+            
             setTimeout(() => {
                 status.style.display = 'none';
             }, 3000);
         }
-        
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', () => {
-            initWaveform();
-            loadAudio();
-            
-            // Обработчики кнопок
-            document.getElementById('play-btn').addEventListener('click', () => wavesurfer.play());
-            document.getElementById('pause-btn').addEventListener('click', () => wavesurfer.pause());
-            document.getElementById('stop-btn').addEventListener('click', () => wavesurfer.stop());
-            document.getElementById('reset-btn').addEventListener('click', () => {
-                wavesurfer.stop();
-                wavesurfer.seekTo(0);
-                document.getElementById('volume').value = 1;
-                document.getElementById('speed').value = 1;
-                document.getElementById('pitch').value = 0;
-                applyEffects();
-            });
-            document.getElementById('cut-btn').addEventListener('click', cutAudio);
-            
-            // Эффекты
-            document.getElementById('volume').addEventListener('input', applyEffects);
-            document.getElementById('speed').addEventListener('input', applyEffects);
-            document.getElementById('pitch').addEventListener('input', applyEffects);
-            
-            // Форматы
-            document.querySelectorAll('.format-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
-            });
-            
-            // Экспорт
-            document.getElementById('export-btn').addEventListener('click', exportAudio);
-        });
     </script>
 </body>
 </html>
